@@ -3,6 +3,10 @@ import 'trainee.dart';
 import '1coach.dart';
 import 'AdminLoginPage.dart';
 import 'NormalLoginPage.dart';
+import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
+
+final EncryptedSharedPreferences encryptedData = EncryptedSharedPreferences();
+
 void main() {
   runApp(const MyApp());
 }

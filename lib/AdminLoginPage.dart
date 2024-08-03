@@ -5,6 +5,7 @@ import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import 'package:seniorproject/NormalLoginPage.dart';
+import 'package:seniorproject/trainee.dart';
 
 class AdminLoginPage extends StatefulWidget {
   @override
@@ -85,18 +86,21 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
       );
     }
   }
+  final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
+
+  void logout() async {
+    await _encryptedData.remove('adminID');
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => NormalLoginPage()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(onPressed: () async {
-            Navigator.of(context).pop();
-            Navigator.of(context).push(
-                MaterialPageRoute(builder: (context)=> NormalLoginPage()),
-            );
-          }, icon: Icon(Icons.logout))
+          IconButton(onPressed:logout , icon: Icon(Icons.logout))
         ],
         title: Center(
             child: Text('Admin Login', style: TextStyle(color: Colors.white))),
