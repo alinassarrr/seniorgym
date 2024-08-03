@@ -315,7 +315,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         'pass': password,
         'firstName': firstName,
         'lastName': lastName,
-        'role': role,
+        'role': role.toLowerCase(),
       }),
     );
 
