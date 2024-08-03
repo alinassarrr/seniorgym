@@ -94,8 +94,64 @@ class _NormalLoginPageState extends State<NormalLoginPage> {
     super.initState();
     checkSavedData();
   }
+  void showAlertDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  void checkLogin(Function(String id, String role, String name) saveData,
+      Function() load, String ID, String password) async {
+    try {
+      final response = await http
+          .post(Uri.parse('$_baseURL/php/login.php'),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8'
+          },
+          body: convert
+              .jsonEncode(<String, String>{'id': ID, 'pass': password}))
+          .timeout(const Duration(seconds: 5));
 
-
+      if (response.statusCode == 200) {
+        final jsonResponse = convert.jsonDecode(response.body);
+        if (jsonResponse.isEmpty) {
+          showAlertDialog('Error', 'No such user found. Please check your details.');
+        } else {
+          var row = jsonResponse[0];
+          saveData(row['userID'], row['role'], row['Fname']);
+        }
+      } else if (response.statusCode == 404) {
+        final errorResponse = convert.jsonDecode(response.body);
+        showAlertDialog('Wrong Credentials', errorResponse['error']);
+      } else if (response.statusCode == 500) {
+        final errorResponse = convert.jsonDecode(response.body);
+        showAlertDialog('Error', errorResponse['error']);
+      } else {
+        showAlertDialog('Error', 'Unexpected error occurred. Please try again.');
+      }
+    } catch (e) {
+      print(e);
+      showAlertDialog('Error', 'An error occurred. Please check your internet connection and try again.');
+    } finally {
+      // Ensure loading is stopped in all cases
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -178,15 +234,19 @@ class _NormalLoginPageState extends State<NormalLoginPage> {
 
                       SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: _loading?null:() {
+                        onPressed: _loading ? null : () {
                           if (_formKey.currentState!.validate()) {
                             // Validating form fields
                             String userID = _userIDController.text;
                             String password = _passwordController.text;
                             setState(() {
-                              _loading=true;
+                              _loading = true;
                             });
-                            checkLogin(saveData,load,userID, password);
+                            checkLogin(saveData, () {
+                              setState(() {
+                                _loading = false;
+                              });
+                            }, userID, password);
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -197,6 +257,7 @@ class _NormalLoginPageState extends State<NormalLoginPage> {
                           style: TextStyle(fontSize: 20),
                         ),
                       ),
+
                       Visibility(visible: _loading,child: CircularProgressIndicator())
                     ],
                   ),
@@ -209,25 +270,7 @@ class _NormalLoginPageState extends State<NormalLoginPage> {
     );
   }
 }
-void checkLogin(Function(String id, String role, String name) saveData,
-     Function() load,String ID, String password) async {
-  try {
-    final response = await http
-        .post(Uri.parse('$_baseURL/php/login.php'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8'
-        },
-        body: convert
-            .jsonEncode(<String, String>{'id': ID, 'pass': password}))
-        .timeout(const Duration(seconds: 5));
 
-    if (response.statusCode == 200) {
-      final jsonResponse = convert.jsonDecode(response.body);
-      var row = jsonResponse[0];
-      saveData(row['userID'],row['role'],row['Fname']);
-    }
-  } catch (e) {
-    load();
-    print(e);
-  }
-}
+
+
+

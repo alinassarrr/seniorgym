@@ -4,6 +4,8 @@ include 'conn.php';
 $jsonData = file_get_contents('php://input');
 $data = json_decode($jsonData, true);
 
+header('Content-Type: application/json'); // Ensure response is in JSON format
+
 if ($data !== null) {
     $id = $data['id'];
     $password = $data['pass'];
@@ -20,15 +22,15 @@ if ($data !== null) {
             echo json_encode($emparray);
         } else {
             http_response_code(404);
-            echo "No matching records found";
+            echo json_encode(["error" => "No matching records found"]);
         }
         mysqli_close($conn);
     } else {
         http_response_code(500);
-        echo "Query failed: " . mysqli_error($conn);
+        echo json_encode(["error" => "Query failed: " . mysqli_error($conn)]);
     }
 } else {
     http_response_code(400);
-    echo "Invalid JSON data";
+    echo json_encode(["error" => "Invalid JSON data"]);
 }
 ?>

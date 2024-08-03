@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:seniorproject/userRolePage.dart';
 import 'trainee.dart';
 import '1coach.dart';
 import 'AdminLoginPage.dart';
@@ -18,7 +17,6 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: "project",
     );
-
 
 //bold w akbar w kellon caps on
 // watte contrast lal images aashen ktir mdawin
