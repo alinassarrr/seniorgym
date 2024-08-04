@@ -4,9 +4,10 @@ import 'dart:convert' as convert;
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 
 const String _baseURL = 'http://10.0.2.2:8080/';
-final EncryptedSharedPreferences _encryptedData= EncryptedSharedPreferences();
+final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
 
-List <String> CoachName=['Hussein Rihan','kingza'];
+List<String> CoachName = [];
+
 class CoachesPage extends StatefulWidget {
   @override
   _CoachesPageState createState() => _CoachesPageState();
@@ -15,7 +16,56 @@ class CoachesPage extends StatefulWidget {
 class _CoachesPageState extends State<CoachesPage> {
   String selectedCoach = '';
 
+  @override
+  void initState() {
+    super.initState();
+    getCoach();
+  }
 
+  void getCoach() async {
+    try {
+      final response = await http
+          .post(Uri.parse('$_baseURL/php/getCoaches.php'),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8'
+          })
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final jsonResponse = convert.jsonDecode(response.body);
+        setState(() {
+          CoachName.clear();
+          for (var row in jsonResponse) {
+            CoachName.add("${row['Fname']} ${row['Lname']}");
+          }
+        });
+      } else {
+        print('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception: $e');
+    }
+  }
+
+  void showSelectedCoach() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Selected Coach'),
+          content: Text(selectedCoach.isNotEmpty ? selectedCoach : 'No coach selected'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +86,10 @@ class _CoachesPageState extends State<CoachesPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Coach Names',
-              style: TextStyle(fontSize: 18, color: Colors.white),
+              'Select Your Coach',
+              style: TextStyle(fontSize: 24, color: Colors.white,fontWeight:FontWeight.w700),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 0),
             Expanded(
               child: ListView.builder(
                 itemCount: CoachName.length,
@@ -58,7 +108,7 @@ class _CoachesPageState extends State<CoachesPage> {
                         ),
                         Text(
                           CoachName[index],
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: Colors.white, fontWeight:FontWeight.w400,fontSize: 20 ),
                         ),
                       ],
                     ),
@@ -66,40 +116,24 @@ class _CoachesPageState extends State<CoachesPage> {
                 },
               ),
             ),
+            SizedBox(height: 20),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  showSelectedCoach(); // Show the selected coach when button is pressed
+                },
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                ),
+                child: Text(
+                  'Done',
+                  style: TextStyle(fontSize: 20),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-}
-void getCoach() async {
-  try {
-    print('try');
-    String ID= await _encryptedData.getString('coachID');
-    final response = await http
-        .post(Uri.parse('$_baseURL/php/getCoach.php'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8'
-        },
-        body: convert
-            .jsonEncode(<String, String>{'id': ID}))
-        .timeout(const Duration(seconds: 5));
-    print('try2');
-    CoachName.clear();
-
-    if (response.statusCode == 200) {
-      print('nehna IF');
-      final jsonResponse = convert.jsonDecode(response.body);
-      for (var row in jsonResponse){
-        CoachName.add("${row['Fname']} ${row['Lname']}");
-
-
-      }
-
-
-    }
-  } catch (e) {
-    print('hi');
-    return ;
   }
 }

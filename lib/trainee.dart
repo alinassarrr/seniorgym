@@ -8,7 +8,8 @@ import 'traineeCoachesPage.dart';
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import 'NormalLoginPage.dart';
 
-
+//i want to see if a trainee when he logged in and navigate to HomePage to
+// check if the trainee id is not in table registeredcoach (rcID,userID,coachID,date(timestamp) )
 final EncryptedSharedPreferences _encryptedData= EncryptedSharedPreferences();
 
 class Homepage extends StatefulWidget {
