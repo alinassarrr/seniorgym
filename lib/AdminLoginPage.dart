@@ -294,6 +294,7 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
               actions: [
                 TextButton(
                   onPressed: () {
+
                     Navigator.of(context).pop();
                   },
                   child: Text('OK'),
@@ -336,6 +337,13 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
               actions: [
                 TextButton(
                   onPressed: () {
+                    _userIDController.clear();
+                    _passwordController.clear();
+                    _firstNameController.clear();
+                    _lastNameController.clear();
+                    setState(() {
+                      _imageFile = null; // Clear the image
+                    });
                     Navigator.of(context).pop();
                   },
                   child: Text('OK'),

@@ -36,6 +36,7 @@ class _CoachesPageState extends State<CoachesPage> {
         setState(() {
           CoachName.clear();
           for (var row in jsonResponse) {
+
             CoachName.add("${row['Fname']} ${row['Lname']}");
           }
         });
@@ -56,8 +57,10 @@ class _CoachesPageState extends State<CoachesPage> {
           content: Text(selectedCoach.isNotEmpty ? selectedCoach : 'No coach selected'),
           actions: <Widget>[
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the alert dialog
+                Navigator.of(context).pop(); // Navigate back to the previous screen
+                await assignCoach(); // Assign the coach
               },
               child: Text('OK'),
             ),
@@ -65,6 +68,35 @@ class _CoachesPageState extends State<CoachesPage> {
         );
       },
     );
+  }
+
+  Future<void> assignCoach() async {
+    try {
+      final traineeID = await _encryptedData.getString('traineeID'); // Get the trainee ID from encrypted shared preferences
+      final now = DateTime.now().toIso8601String(); // Current timestamp for date
+
+      final response = await http.post(
+        Uri.parse('$_baseURL/php/assignCoach.php'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: convert.jsonEncode(<String, String>{
+          'userID': traineeID,
+          'coachID': selectedCoach, // Ensure you have the coachID in your coach list
+          'date': now,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // Handle successful response
+        print('Coach assigned successfully');
+      } else {
+        // Handle error response
+        print('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception: $e');
+    }
   }
 
   @override
@@ -77,7 +109,9 @@ class _CoachesPageState extends State<CoachesPage> {
         ),
         centerTitle: true, // Center align the title
         backgroundColor: Colors.black,
-        iconTheme: IconThemeData(color: Colors.white), // Set the back button color to white
+        iconTheme: IconThemeData(color: Colors.white),// Set the back button color to white
+        automaticallyImplyLeading: false, // Hide the back button
+
       ),
       backgroundColor: Colors.black,
       body: Padding(

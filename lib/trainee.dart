@@ -7,6 +7,8 @@ import 'traineeSnacksPage.dart';
 import 'traineeCoachesPage.dart';
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import 'NormalLoginPage.dart';
+import 'dart:convert' as convert;
+import 'package:http/http.dart' as http;
 
 //i want to see if a trainee when he logged in and navigate to HomePage to
 // check if the trainee id is not in table registeredcoach (rcID,userID,coachID,date(timestamp) )
@@ -27,7 +29,6 @@ class _HomepageState extends State<Homepage> {
   final String coachesBackground = 'coaches.jpg';
   final String anotherButtonBackground = 'detected.jpg';
   String name="";
-//ss
   // Add descriptions for each exercise
   final List<String> exerciseDescriptions = [
     'Shoulder-width stance, palms forward, curl dumbbells to shoulders, elbows tight. Lower with control, repeat.',
@@ -38,12 +39,65 @@ class _HomepageState extends State<Homepage> {
     'Start standing, feet together. Shift weight, bend knee, foot to inner thigh or calf. Hands at heart or overhead.',
     'Wide stance, arms parallel, turn right foot out, bend knee. Hold, gaze over hand. Switch sides.',
   ];
+
+
 @override
   void initState(){
     // TODO: implement initState
     super.initState();
    setName();
+    checkCoachAssignment();
   }
+
+  Future<void> checkCoachAssignment() async {
+    try {
+      // Retrieve the trainee ID from encrypted shared preferences
+      String? traineeID = await _encryptedData.getString('traineeID');
+
+      if (traineeID == null) {
+        throw Exception('Trainee ID not found');
+      }
+
+      // Make a POST request to the PHP file
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8080/php/check_coach.php'),
+        headers: <String, String>{
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: <String, String>{
+          'userID': traineeID,
+        },
+      );
+      // Parse the response
+      final responseJson = convert.jsonDecode(response.body);
+      final bool assigned = responseJson['assigned'];
+      if (!assigned) {
+        // Show alert and navigate to CoachesPage
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Coach Assignment'),
+            content: Text('You have not assigned a coach yet! Go and assign one.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => CoachesPage()),
+                  );
+                },
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error occurred while checking coach assignment: $e');
+    }
+  }
+
   void setName(){
     Future.delayed(const Duration(seconds: 1), () async{
       String temp=await _encryptedData.getString('name');
@@ -51,7 +105,6 @@ class _HomepageState extends State<Homepage> {
         name=temp;
       });
     });
-
   }
 
   @override
