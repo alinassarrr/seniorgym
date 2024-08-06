@@ -11,21 +11,23 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 $userID = $data['userID'] ?? '';
 
 if (empty($userID)) {
-    echo json_encode(array('error' => 'User ID is missing'));
+    echo json_encode(array('error' => 'Missing parameters'));
     exit();
 }
 
-$query = "SELECT coachID FROM registeredcoach WHERE userID = ? ORDER BY date DESC LIMIT 1";
+// Check if userID exists in the table
+$query = "SELECT COUNT(*) AS count FROM registeredcoach WHERE userID = ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param('i', $userID);
-$stmt->execute();
-$result = $stmt->get_result();
+$stmt->bind_param('s', $userID);
 
-if ($result->num_rows > 0) {
+if ($stmt->execute()) {
+    $result = $stmt->get_result();
     $row = $result->fetch_assoc();
-    echo json_encode(array('coachID' => $row['coachID']));
+    $isCoachAssigned = $row['count'] > 0;
+
+    echo json_encode($isCoachAssigned); // Return true or false
 } else {
-    echo json_encode(array('coachID' => null));
+    echo json_encode(array('error' => 'Failed to check coach assignment'));
 }
 
 $stmt->close();
