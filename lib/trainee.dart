@@ -41,7 +41,6 @@ class _HomepageState extends State<Homepage> {
     'Wide stance, arms parallel, turn right foot out, bend knee. Hold, gaze over hand. Switch sides.',
   ];
 
-
 @override
   void initState(){
     // TODO: implement initState
@@ -61,7 +60,6 @@ class _HomepageState extends State<Homepage> {
   }
   Future<void> checkCoachAssignment() async {
   print('Trainee ID retrieved: $uID');
-
     if (uID == null) {
       print('Trainee ID is null or empty');
       return;

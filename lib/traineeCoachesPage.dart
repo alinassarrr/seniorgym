@@ -15,11 +15,13 @@ class CoachesPage extends StatefulWidget {
 
 class _CoachesPageState extends State<CoachesPage> {
   String selectedCoachID = ''; // Store selected coach ID
+  String assignedCoachName = ''; // Store the name of the assigned coach
 
   @override
   void initState() {
     super.initState();
     getCoach();
+    getAssignedCoach(); // Fetch the assigned coach on initialization
   }
 
   void getCoach() async {
@@ -50,23 +52,50 @@ class _CoachesPageState extends State<CoachesPage> {
     }
   }
 
+  Future<void> getAssignedCoach() async {
+    try {
+      final traineeID = await _encryptedData.getString('traineeID'); // Get the trainee ID from encrypted shared preferences
+
+      final response = await http.post(
+        Uri.parse('$_baseURL/php/getAssignedCoach.php'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: convert.jsonEncode(<String, String>{
+          'userID': traineeID,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = convert.jsonDecode(response.body);
+
+        setState(() {
+          selectedCoachID = jsonResponse['coachID']?.toString() ?? ''; // Convert to string if necessary
+          if (selectedCoachID.isNotEmpty) {
+            final selectedCoach = coaches.firstWhere(
+                  (coach) => coach['id'] == selectedCoachID,
+              orElse: () => {'name': 'Unknown'},
+            );
+            assignedCoachName = selectedCoach['name'] ?? 'Unknown';
+          } else {
+            assignedCoachName = 'No coach assigned';
+          }
+        });
+      } else {
+        print('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception: $e');
+    }
+  }
+
   void showSelectedCoach() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        String coachName = 'No coach selected';
-
-        if (selectedCoachID.isNotEmpty) {
-          final selectedCoach = coaches.firstWhere(
-                (coach) => coach['id'] == selectedCoachID,
-            orElse: () => {'name': 'Unknown'}, // Default value if coach not found
-          );
-          coachName = selectedCoach['name'] ?? 'Unknown';
-        }
-
         return AlertDialog(
           title: Text('Selected Coach'),
-          content: Text(coachName),
+          content: Text(assignedCoachName),
           actions: <Widget>[
             TextButton(
               onPressed: () async {
