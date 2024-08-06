@@ -1,5 +1,6 @@
 <?php
-include 'conn.php'; 
+include 'conn.php'; // Include your database connection file
+
 // Get JSON data from the request
 $jsonData = file_get_contents('php://input');
 $data = json_decode($jsonData, true);
@@ -11,21 +12,21 @@ if ($data !== null) {
     $lastName = $data['lastName'];
     $role = $data['role'];
 
-    // Validation no input is empty
+    // Validate input
     if (empty($id) || empty($password) || empty($firstName) || empty($lastName) || empty($role)) {
         http_response_code(400);
         echo json_encode(["error" => "All fields are required"]);
         exit();
     }
 
-    // Some security to avoid SQL INJ
+    // Escape input to prevent SQL injection
     $id = mysqli_real_escape_string($conn, $id);
     $password = mysqli_real_escape_string($conn, $password);
     $firstName = mysqli_real_escape_string($conn, $firstName);
     $lastName = mysqli_real_escape_string($conn, $lastName);
     $role = mysqli_real_escape_string($conn, $role);
 
-    // Check bl awal if user already exists
+    // Check if user already exists
     $query = "SELECT * FROM `users` WHERE `userID` = '$id'";
     $result = mysqli_query($conn, $query);
 
@@ -46,6 +47,7 @@ if ($data !== null) {
         echo json_encode(["error" => "Error creating user: " . mysqli_error($conn)]);
     }
 
+    // Close database connection
     mysqli_close($conn);
 } else {
     http_response_code(400);

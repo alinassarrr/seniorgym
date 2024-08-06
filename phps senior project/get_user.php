@@ -1,7 +1,7 @@
 <?php
-include 'conn.php'; 
+include 'conn.php'; // Include your database connection file
 
-// Check for userID provided by user in interface
+// Check if the userID is provided
 if (isset($_GET['userID'])) {
     $userID = mysqli_real_escape_string($conn, $_GET['userID']);
     
@@ -15,7 +15,7 @@ if (isset($_GET['userID'])) {
             // Construct the image URL
             $imageUrl = 'http://10.0.2.2:8080/uploads/' . basename($user['image']);
             
-            // JSON DATA
+            // Return user data as JSON
             echo json_encode([
                 'userID' => $user['userID'],
                 'firstName' => $user['firstName'],
@@ -31,6 +31,7 @@ if (isset($_GET['userID'])) {
         echo json_encode(['error' => 'Database query failed']);
     }
 
+    // Close database connection
     mysqli_close($conn);
 } else {
     http_response_code(400);

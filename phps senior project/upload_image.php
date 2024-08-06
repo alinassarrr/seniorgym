@@ -1,12 +1,12 @@
 <?php
-include 'conn.php';
+include 'conn.php'; // Include your database connection file
 
-//Check if file was uploaded 
+// Check if a file has been uploaded
 if (isset($_FILES['image']) && isset($_POST['userID'])) {
     $userID = mysqli_real_escape_string($conn, $_POST['userID']);
     $image = $_FILES['image'];
 
-    //Te3rif upload directory and file path
+    // Define upload directory and file path
     $uploadDir = __DIR__ . '/uploads/';
     if (!file_exists($uploadDir)) {
         mkdir($uploadDir, 0777, true);
@@ -14,8 +14,9 @@ if (isset($_FILES['image']) && isset($_POST['userID'])) {
     $fileName = basename($image['name']);
     $filePath = $uploadDir . $fileName;
 
-    //Move Uploaded Image to Dir
+    // Move uploaded file to upload directory
     if (move_uploaded_file($image['tmp_name'], $filePath)) {
+        // Update the database with the file path
         $query = "UPDATE users SET image = '$filePath' WHERE userID = '$userID'";
         if (mysqli_query($conn, $query)) {
             http_response_code(200);

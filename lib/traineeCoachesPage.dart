@@ -6,7 +6,7 @@ import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 const String _baseURL = 'http://10.0.2.2:8080/';
 final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
 
-List<String> CoachName = [];
+List<Map<String, String>> coaches = []; // Store coach ID and Name
 
 class CoachesPage extends StatefulWidget {
   @override
@@ -14,7 +14,7 @@ class CoachesPage extends StatefulWidget {
 }
 
 class _CoachesPageState extends State<CoachesPage> {
-  String selectedCoach = '';
+  String selectedCoachID = ''; // Store selected coach ID
 
   @override
   void initState() {
@@ -34,10 +34,12 @@ class _CoachesPageState extends State<CoachesPage> {
       if (response.statusCode == 200) {
         final jsonResponse = convert.jsonDecode(response.body);
         setState(() {
-          CoachName.clear();
+          coaches.clear();
           for (var row in jsonResponse) {
-
-            CoachName.add("${row['Fname']} ${row['Lname']}");
+            coaches.add({
+              'id': row['userID'], // Ensure this matches your server's response
+              'name': "${row['Fname']} ${row['Lname']}",
+            });
           }
         });
       } else {
@@ -52,9 +54,19 @@ class _CoachesPageState extends State<CoachesPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
+        String coachName = 'No coach selected';
+
+        if (selectedCoachID.isNotEmpty) {
+          final selectedCoach = coaches.firstWhere(
+                (coach) => coach['id'] == selectedCoachID,
+            orElse: () => {'name': 'Unknown'}, // Default value if coach not found
+          );
+          coachName = selectedCoach['name'] ?? 'Unknown';
+        }
+
         return AlertDialog(
           title: Text('Selected Coach'),
-          content: Text(selectedCoach.isNotEmpty ? selectedCoach : 'No coach selected'),
+          content: Text(coachName),
           actions: <Widget>[
             TextButton(
               onPressed: () async {
@@ -82,7 +94,7 @@ class _CoachesPageState extends State<CoachesPage> {
         },
         body: convert.jsonEncode(<String, String>{
           'userID': traineeID,
-          'coachID': selectedCoach, // Ensure you have the coachID in your coach list
+          'coachID': selectedCoachID, // Use coach ID here
           'date': now,
         }),
       );
@@ -109,9 +121,8 @@ class _CoachesPageState extends State<CoachesPage> {
         ),
         centerTitle: true, // Center align the title
         backgroundColor: Colors.black,
-        iconTheme: IconThemeData(color: Colors.white),// Set the back button color to white
+        iconTheme: IconThemeData(color: Colors.white), // Set the back button color to white
         automaticallyImplyLeading: false, // Hide the back button
-
       ),
       backgroundColor: Colors.black,
       body: Padding(
@@ -121,28 +132,28 @@ class _CoachesPageState extends State<CoachesPage> {
           children: [
             Text(
               'Select Your Coach',
-              style: TextStyle(fontSize: 24, color: Colors.white,fontWeight:FontWeight.w700),
+              style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.w700),
             ),
             SizedBox(height: 0),
             Expanded(
               child: ListView.builder(
-                itemCount: CoachName.length,
+                itemCount: coaches.length,
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Row(
                       children: [
                         Radio(
-                          value: CoachName[index],
-                          groupValue: selectedCoach, // Provide a group value to handle radio button selection
+                          value: coaches[index]['id'],
+                          groupValue: selectedCoachID, // Provide a group value to handle radio button selection
                           onChanged: (value) {
                             setState(() {
-                              selectedCoach = value.toString(); // Update the selected coach when radio button is changed
+                              selectedCoachID = value.toString(); // Update the selected coach ID when radio button is changed
                             });
                           },
                         ),
                         Text(
-                          CoachName[index],
-                          style: TextStyle(color: Colors.white, fontWeight:FontWeight.w400,fontSize: 20 ),
+                          coaches[index]['name'] ?? '',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w400, fontSize: 20),
                         ),
                       ],
                     ),

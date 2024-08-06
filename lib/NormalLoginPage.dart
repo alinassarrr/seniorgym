@@ -24,7 +24,6 @@ class _NormalLoginPageState extends State<NormalLoginPage> {
     setState(() {
       _loading=false;
     });
-
   }
   void saveData(String id,String role,String name){
 
@@ -55,9 +54,7 @@ class _NormalLoginPageState extends State<NormalLoginPage> {
     }
     setState(() {
       _loading=false;
-
     });
-
   }
   void checkSavedData()async{
     await _encryptedData.getString('traineeID').then((String value) {
