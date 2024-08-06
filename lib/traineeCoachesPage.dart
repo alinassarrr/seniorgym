@@ -95,15 +95,21 @@ class _CoachesPageState extends State<CoachesPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Selected Coach'),
-          content: Text(assignedCoachName),
+          content: Text('Do you want to change to $assignedCoachName?'),
           actions: <Widget>[
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop(); // Close the alert dialog
                 Navigator.of(context).pop(); // Navigate back to the previous screen
-                await assignCoach(); // Assign the coach
+                await assignCoach(); // Assign or update the coach
               },
-              child: Text('OK'),
+              child: Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the alert dialog without action
+              },
+              child: Text('No'),
             ),
           ],
         );
@@ -111,29 +117,49 @@ class _CoachesPageState extends State<CoachesPage> {
     );
   }
 
+
   Future<void> assignCoach() async {
     try {
       final traineeID = await _encryptedData.getString('traineeID'); // Get the trainee ID from encrypted shared preferences
       final now = DateTime.now().toIso8601String(); // Current timestamp for date
 
-      final response = await http.post(
-        Uri.parse('$_baseURL/php/assignCoach.php'),
+      // Check if a coach is already assigned
+      final checkResponse = await http.post(
+        Uri.parse('$_baseURL/php/check_coach.php'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
         body: convert.jsonEncode(<String, String>{
           'userID': traineeID,
-          'coachID': selectedCoachID, // Use coach ID here
-          'date': now,
         }),
       );
 
-      if (response.statusCode == 200) {
-        // Handle successful response
-        print('Coach assigned successfully');
+      if (checkResponse.statusCode == 200) {
+        final checkJsonResponse = convert.jsonDecode(checkResponse.body);
+        final existingCoachID = checkJsonResponse['coachID'];
+
+        // Decide whether to update or insert based on existing assignment
+        final updateResponse = await http.post(
+          Uri.parse('$_baseURL/php/updateCoach.php'),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: convert.jsonEncode(<String, String>{
+            'userID': traineeID,
+            'coachID': selectedCoachID,
+            'date': now,
+          }),
+        );
+
+        if (updateResponse.statusCode == 200) {
+          // Handle successful response
+          print('Coach updated successfully');
+        } else {
+          // Handle error response
+          print('Error: ${updateResponse.statusCode}');
+        }
       } else {
-        // Handle error response
-        print('Error: ${response.statusCode}');
+        print('Error checking coach assignment: ${checkResponse.statusCode}');
       }
     } catch (e) {
       print('Exception: $e');
