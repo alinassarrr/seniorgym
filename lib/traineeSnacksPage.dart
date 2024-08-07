@@ -40,7 +40,8 @@ class SnacksPage extends StatelessWidget {
                 child: Center(
                   child: Text(
                     'Sweet',
-                    style: TextStyle(fontSize: 20, color: Colors.black),
+                    style: TextStyle(fontSize: 24, color: Colors.white
+                    ),
                   ),
                 ),
               ),
@@ -67,7 +68,7 @@ class SnacksPage extends StatelessWidget {
                 child: Center(
                   child: Text(
                     'Sour',
-                    style: TextStyle(fontSize: 20, color: Colors.red),
+                    style: TextStyle(fontSize: 24, color: Colors.white),
                   ),
                 ),
               ),

@@ -1,20 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
-import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 
-const String _baseURL = 'http://seniorproject30.000webhostapp.com/';
-final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
-List<String> workoutNames = [
-  'biceps',
-  'shoulders',
-  'back',
-  'legs',
-  'tpose',
-  'treepose',
-  'warriorpose'
-];
-List<bool> checked = List.filled(workoutNames.length, false);
+const String _baseURL = 'http://10.0.2.2:8080/';
+List<String> workoutNames = [];
+List<bool> checked = [];
 
 class WorkoutAssignmentPage extends StatefulWidget {
   final String ID;
@@ -26,17 +16,16 @@ class WorkoutAssignmentPage extends StatefulWidget {
 }
 
 class _WorkoutAssignmentPageState extends State<WorkoutAssignmentPage> {
+  @override
+  void initState() {
+    super.initState();
+    getAssignedExercises(widget.ID);
+  }
+
   void refresh() {
     setState(() {});
   }
 
-  @override
-  void initState() {
-    getExercises(refresh, widget.ID);
-    super.initState();
-  }
-
-  @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,7 +41,7 @@ class _WorkoutAssignmentPageState extends State<WorkoutAssignmentPage> {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          color: Colors.white, // Back button color
+          color: Colors.white,
         ),
       ),
       backgroundColor: Colors.black,
@@ -71,16 +60,21 @@ class _WorkoutAssignmentPageState extends State<WorkoutAssignmentPage> {
               });
             },
             controlAffinity: ListTileControlAffinity.trailing,
-            // Align checkbox to the right
             checkColor: Colors.white,
-            // Color of the checkbox
-            activeColor: Colors.white, // Color of the checked checkbox
+            activeColor: Colors.white,
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          deleteExercises(widget.ID);
+          // Delete unchecked exercises
+          for (int i = 0; i < workoutNames.length; i++) {
+            if (!checked[i]) {
+              deleteExercises(widget.ID, '${i + 1}');
+            }
+          }
+
+          // Add checked exercises
           for (int i = 0; i < checked.length; i++) {
             if (checked[i]) {
               addExercises(widget.ID, '${i + 1}');
@@ -88,81 +82,92 @@ class _WorkoutAssignmentPageState extends State<WorkoutAssignmentPage> {
           }
         },
         child: Icon(Icons.check),
-        backgroundColor: Colors.white, // Set FAB background color
+        backgroundColor: Colors.white,
       ),
     );
   }
-}
 
-void getExercises(Function() refresh, String userID) async {
-  try {
-    final response = await http
-        .post(
-          Uri.parse('$_baseURL/getExercises.php'),
+  void getAssignedExercises(String userID) async {
+    try {
+      final assignedResponse = await http.post(
+        Uri.parse('$_baseURL/php/getAssignedExercises.php'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8'
+        },
+        body: convert.jsonEncode(<String, String>{'id': userID}),
+      ).timeout(const Duration(seconds: 5));
+
+      if (assignedResponse.statusCode == 200) {
+        final jsonResponse = convert.jsonDecode(assignedResponse.body);
+
+        workoutNames.clear();
+        checked.clear();
+
+        for (var row in jsonResponse['exercises']) {
+          workoutNames.add(row['exerciseType']);
+          checked.add(true);
+        }
+
+        final allExercisesResponse = await http.get(
+          Uri.parse('$_baseURL/php/getAllExercises.php'),
           headers: <String, String>{
             'Content-Type': 'application/json; charset=UTF-8'
           },
-          body: convert.jsonEncode(<String, String>{'id': userID}),
-        )
-        .timeout(const Duration(seconds: 5));
+        ).timeout(const Duration(seconds: 5));
 
-    if (response.statusCode == 200) {
-      print(response.body);
-      final jsonResponse = convert.jsonDecode(response.body);
-      // Initialize checked list
-      for (var row in jsonResponse) {
-        for (int i = 0; i < workoutNames.length; i++) {
-          if (workoutNames[i] == row['exerciseType']) {
-            checked[i] = true;
-            break; // No need to continue searching once a match is found
+        if (allExercisesResponse.statusCode == 200) {
+          final allExercises = convert.jsonDecode(allExercisesResponse.body);
+          for (var row in allExercises) {
+            if (!workoutNames.contains(row['exerciseType'])) {
+              workoutNames.add(row['exerciseType']);
+              checked.add(false);
+            }
           }
+
+          setState(() {});
         }
       }
-      refresh();
-      // Do something with the checked list here
+    } catch (e) {
+      print('Error occurred: $e');
     }
-  } catch (e) {
-    print('Error occurred: $e hahahhahhaha');
   }
-}
 
-void addExercises(String userID, String exerciseID) async {
-  try {
-    final response = await http
-        .post(
-          Uri.parse('$_baseURL/addExercises.php'),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8'
-          },
-          body: convert.jsonEncode(
-              <String, String>{'id': userID, 'exerciseID': exerciseID}),
-        )
-        .timeout(const Duration(seconds: 5));
+  void addExercises(String userID, String exerciseID) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseURL/php/addExercises.php'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8'
+        },
+        body: convert.jsonEncode(<String, String>{'id': userID, 'exerciseID': exerciseID}),
+      ).timeout(const Duration(seconds: 5));
 
-    if (response.statusCode == 200) {
-      print(response.body);
+      if (response.statusCode == 200) {
+        print('Exercise added: ${response.body}');
+      } else {
+        print('Failed to add exercise: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error occurred: $e');
     }
-  } catch (e) {
-    print('Error occurred: $e');
   }
-}
+  void deleteExercises(String userID, String exerciseID) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseURL/php/deleteExercise.php'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8'
+        },
+        body: convert.jsonEncode(<String, String>{'id': userID, 'exerciseID': exerciseID}),
+      ).timeout(const Duration(seconds: 5));
 
-void deleteExercises(String userID) async {
-  try {
-    final response = await http
-        .post(
-          Uri.parse('$_baseURL/deleteExercises.php'),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8'
-          },
-          body: convert.jsonEncode(<String, String>{'id': userID}),
-        )
-        .timeout(const Duration(seconds: 5));
-
-    if (response.statusCode == 200) {
-      print(response.body);
+      if (response.statusCode == 200) {
+        print('Exercise deleted: ${response.body}');
+      } else {
+        print('Failed to delete exercise: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error occurred: $e');
     }
-  } catch (e) {
-    print('Error occurred: $e');
   }
 }

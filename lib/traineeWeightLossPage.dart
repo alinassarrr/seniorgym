@@ -41,7 +41,7 @@ class WeightLossPage extends StatelessWidget {
                   child: Center(
                     child: Text(
                       'Breakfast',
-                      style: TextStyle(fontSize: 20, color: Colors.black),
+                      style: TextStyle(fontSize: 24, color: Colors.white),
                     ),
                   ),
                 ),
@@ -68,7 +68,7 @@ class WeightLossPage extends StatelessWidget {
                   child: Center(
                     child: Text(
                       'Lunch',
-                      style: TextStyle(fontSize: 20, color: Colors.black),
+                      style: TextStyle(fontSize: 24, color: Colors.white),
                     ),
                   ),
                 ),
@@ -95,7 +95,7 @@ class WeightLossPage extends StatelessWidget {
                   child: Center(
                     child: Text(
                       'Dinner',
-                      style: TextStyle(fontSize: 20, color: Colors.black),
+                      style: TextStyle(fontSize: 24, color: Colors.white),
                     ),
                   ),
                 ),

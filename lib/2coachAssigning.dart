@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '4coachMealGoal.dart';
 import '3coachWorkoutAssignmentPage.dart';
 
-
-
 class TraineeDetailPage extends StatelessWidget {
   final String traineeName;
   final String ID;
