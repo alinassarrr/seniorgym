@@ -16,14 +16,12 @@ class WorkoutAssignmentPage extends StatefulWidget {
 }
 
 class _WorkoutAssignmentPageState extends State<WorkoutAssignmentPage> {
+  bool isLoading = false;
+
   @override
   void initState() {
     super.initState();
     getAssignedExercises(widget.ID);
-  }
-
-  void refresh() {
-    setState(() {});
   }
 
   @override
@@ -45,7 +43,9 @@ class _WorkoutAssignmentPageState extends State<WorkoutAssignmentPage> {
         ),
       ),
       backgroundColor: Colors.black,
-      body: ListView.builder(
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
         itemCount: workoutNames.length,
         itemBuilder: (context, index) {
           return CheckboxListTile(
@@ -61,25 +61,33 @@ class _WorkoutAssignmentPageState extends State<WorkoutAssignmentPage> {
             },
             controlAffinity: ListTileControlAffinity.trailing,
             checkColor: Colors.white,
-            activeColor: Colors.white,
+            activeColor: Colors.green,
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: () async {
+          setState(() {
+            isLoading = true;
+          });
+
           // Delete unchecked exercises
           for (int i = 0; i < workoutNames.length; i++) {
             if (!checked[i]) {
-              deleteExercises(widget.ID, '${i + 1}');
+              await deleteExercises(widget.ID, '${i + 1}');
             }
           }
 
           // Add checked exercises
           for (int i = 0; i < checked.length; i++) {
             if (checked[i]) {
-              addExercises(widget.ID, '${i + 1}');
+              await addExercises(widget.ID, '${i + 1}');
             }
           }
+
+          setState(() {
+            isLoading = false;
+          });
         },
         child: Icon(Icons.check),
         backgroundColor: Colors.white,
@@ -88,6 +96,10 @@ class _WorkoutAssignmentPageState extends State<WorkoutAssignmentPage> {
   }
 
   void getAssignedExercises(String userID) async {
+    setState(() {
+      isLoading = true;
+    });
+
     try {
       final assignedResponse = await http.post(
         Uri.parse('$_baseURL/php/getAssignedExercises.php'),
@@ -129,10 +141,14 @@ class _WorkoutAssignmentPageState extends State<WorkoutAssignmentPage> {
       }
     } catch (e) {
       print('Error occurred: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
-  void addExercises(String userID, String exerciseID) async {
+  Future<void> addExercises(String userID, String exerciseID) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseURL/php/addExercises.php'),
@@ -151,7 +167,8 @@ class _WorkoutAssignmentPageState extends State<WorkoutAssignmentPage> {
       print('Error occurred: $e');
     }
   }
-  void deleteExercises(String userID, String exerciseID) async {
+
+  Future<void> deleteExercises(String userID, String exerciseID) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseURL/php/deleteExercise.php'),

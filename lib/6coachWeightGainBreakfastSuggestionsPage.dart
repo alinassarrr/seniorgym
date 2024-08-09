@@ -5,8 +5,9 @@ import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 
 const String _baseURL = 'http://10.0.2.2:8080';
 final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
-List<String> breakfastOptions = [];
-List<bool> selectedOptions = [];
+List<String> foodIDs = [];  // Stores the actual foodID from the database
+List<String> breakfastOptions = [];  // Stores the names of the breakfast options
+List<bool> selectedOptions = [];  // Tracks which options are selected
 
 class BreakfastSuggestionsPage extends StatefulWidget {
   final String ID;
@@ -18,6 +19,8 @@ class BreakfastSuggestionsPage extends StatefulWidget {
 }
 
 class _BreakfastSuggestionsPageState extends State<BreakfastSuggestionsPage> {
+  bool isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -46,7 +49,9 @@ class _BreakfastSuggestionsPageState extends State<BreakfastSuggestionsPage> {
         ),
       ),
       backgroundColor: Colors.black,
-      body: ListView.builder(
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : ListView.builder(
         itemCount: breakfastOptions.length,
         itemBuilder: (context, index) {
           return CheckboxListTile(
@@ -67,20 +72,31 @@ class _BreakfastSuggestionsPageState extends State<BreakfastSuggestionsPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          List<String> selectedFoodIDs = [];
+        onPressed: () async {
+          setState(() {
+            isLoading = true;
+          });
+
+          // Delete unchecked breakfast items
           for (int i = 0; i < breakfastOptions.length; i++) {
-            if (selectedOptions[i]) {
-              selectedFoodIDs.add('${i + 1}'); // Ensure this is consistent with your backend
+            if (!selectedOptions[i]) {
+              await deleteAssignedFoods(widget.ID, [foodIDs[i]]);
             }
           }
 
-          deleteAssignedFoods(widget.ID, selectedFoodIDs);
-          for (String foodID in selectedFoodIDs) {
-            addFood(widget.ID, foodID);
+          // Add checked breakfast items
+          for (int i = 0; i < selectedOptions.length; i++) {
+            if (selectedOptions[i]) {
+              await addFood(widget.ID, foodIDs[i]);
+            }
           }
+
+          setState(() {
+            isLoading = false;
+          });
         },
         child: Icon(Icons.done),
+        backgroundColor: Colors.white,
       ),
     );
   }
@@ -89,21 +105,23 @@ class _BreakfastSuggestionsPageState extends State<BreakfastSuggestionsPage> {
     try {
       await Future.delayed(Duration(seconds: 1));
       String name = await _encryptedData.getString('name');
-      final response = await http
-          .post(Uri.parse('$_baseURL/php/getWeightGainBreakfast.php'),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8'
-          },
-          body: convert.jsonEncode(<String, String>{'name': name}))
-          .timeout(const Duration(seconds: 5));
+      final response = await http.post(
+        Uri.parse('$_baseURL/php/getWeightGainBreakfast.php'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8'
+        },
+        body: convert.jsonEncode(<String, String>{'name': name}),
+      ).timeout(const Duration(seconds: 5));
 
+      foodIDs.clear();
       breakfastOptions.clear();
       selectedOptions.clear();
 
       if (response.statusCode == 200) {
         final jsonResponse = convert.jsonDecode(response.body) as List<dynamic>;
         for (var row in jsonResponse) {
-          breakfastOptions.add("${row['name']}");
+          foodIDs.add(row['foodID'].toString());
+          breakfastOptions.add(row['name']);
         }
         selectedOptions = List.generate(breakfastOptions.length, (index) => false);
         refresh();
@@ -125,10 +143,18 @@ class _BreakfastSuggestionsPageState extends State<BreakfastSuggestionsPage> {
 
       if (response.statusCode == 200) {
         final List<dynamic> assignedFoods = convert.jsonDecode(response.body);
-        selectedOptions = List.generate(breakfastOptions.length, (index) {
-          // Assuming the assigned food IDs are strings in the response
-          return assignedFoods.contains('${index + 1}');
-        });
+
+        // Reset selectedOptions to false
+        selectedOptions = List.generate(breakfastOptions.length, (index) => false);
+
+        // Match the foodID with the corresponding index in foodIDs
+        for (var foodID in assignedFoods) {
+          int index = foodIDs.indexOf(foodID.toString());
+          if (index >= 0 && index < breakfastOptions.length) {
+            selectedOptions[index] = true;
+          }
+        }
+
         refresh();
       } else {
         print('Failed to get assigned foods: ${response.statusCode}');
@@ -138,14 +164,15 @@ class _BreakfastSuggestionsPageState extends State<BreakfastSuggestionsPage> {
     }
   }
 
-  void addFood(String userID, String foodID) async {
+  Future<void> addFood(String userID, String foodID) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseURL/php/addFood.php'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8'
         },
-        body: convert.jsonEncode(<String, String>{'id': userID, 'foodID': foodID}),
+        body: convert.jsonEncode(
+            <String, String>{'id': userID, 'foodID': foodID}),
       ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
@@ -158,14 +185,17 @@ class _BreakfastSuggestionsPageState extends State<BreakfastSuggestionsPage> {
     }
   }
 
-  void deleteAssignedFoods(String userID, List<String> foodIDs) async {
+  Future<void> deleteAssignedFoods(String userID, List<String> foodIDs) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseURL/php/deleteFood.php'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8'
         },
-        body: convert.jsonEncode(<String, dynamic>{'id': userID, 'foodIDs': foodIDs}),
+        body: convert.jsonEncode(<String, dynamic>{
+          'id': userID,
+          'foodIDs': foodIDs
+        }),
       ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
