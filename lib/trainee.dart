@@ -5,6 +5,7 @@ import 'traineeWeightLossPage.dart';
 import 'traineeWeightGainPage.dart';
 import 'traineeSnacksPage.dart';
 import 'traineeCoachesPage.dart';
+import 'TraineeOptionsPage.dart';
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
 import 'NormalLoginPage.dart';
 import 'dart:convert' as convert;
@@ -23,7 +24,7 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
 
-  final List<String> photoPaths = ['bi_.jpg', 'test.jpg', 'deadlift.jpg', 'legs.jpg'];
+  final List<String> photoPaths = ['bi_.jpg', 'shoulder.jpg', 'deadlift.jpg', 'legs.jpg'];
   final List<String> secondPhotoPaths = ['tpose1.jpg', 'treepose8.jpg', 'warriorpose.jpg'];
   final List<String> thirdPhotoPaths = ['weightgain.jpg', 'weightloss.jpg', 'snacks.jpg'];
   final String coachesBackground = 'coaches.jpg';
@@ -114,7 +115,8 @@ class _HomepageState extends State<Homepage> {
             _encryptedData.remove('traineeID');
             Navigator.of(context).pop();
             Navigator.of(context).push(MaterialPageRoute(builder: (context)=>NormalLoginPage()));
-          }, icon: Icon(Icons.logout)),
+          }, icon: Icon(Icons.logout),
+          color: Colors.white,),
         ],
         title: Text(
           name+uID,
@@ -161,7 +163,7 @@ class _HomepageState extends State<Homepage> {
                         child: Center(
                           child: Text(
                             part,
-                            style: TextStyle(fontSize: 20, color: Colors.white),
+                            style: TextStyle(fontSize: 24, color: Colors.white,fontWeight:FontWeight.bold),
                           ),
                         ),
                       ),
@@ -207,7 +209,7 @@ class _HomepageState extends State<Homepage> {
                         child: Center(
                           child: Text(
                             item,
-                            style: TextStyle(fontSize: 20, color: Colors.white),
+                            style: TextStyle(fontSize: 24, color: Colors.white,fontWeight:FontWeight.bold),
                           ),
                         ),
                       ),
@@ -259,7 +261,7 @@ class _HomepageState extends State<Homepage> {
                         child: Center(
                           child: Text(
                             item,
-                            style: TextStyle(fontSize: 20, color: Colors.white),
+                            style: TextStyle(fontSize: 24, color: Colors.white,fontWeight:FontWeight.bold ),
                           ),
                         ),
                       ),
@@ -299,33 +301,27 @@ class _HomepageState extends State<Homepage> {
                   ),
                 ),
               ),
+
               SizedBox(height: 20),
-              GestureDetector(
-                onTap: () {
-                  print('Activity Log');
-                },
-                child: Container(
-                  height: 250,
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/$anotherButtonBackground'),
-                      fit: BoxFit.cover,
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Center(
-                    child: Text(
-                      'Activity Log',
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
+
             ],
           ),
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TraineeOptionsPage(userID: uID),
+            ),
+          );
+        },
+        child: Icon(Icons.mark_unread_chat_alt),
+        backgroundColor: Colors.blue,
+      ),
+
     );
+
   }
 }

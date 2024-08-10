@@ -10,6 +10,8 @@ if (json_last_error() !== JSON_ERROR_NONE) {
 
 $userID = $data['id'] ?? '';
 $foodIDs = $data['foodIDs'] ?? [];
+$dateAssigned = '2024-08-10';
+
 
 if (empty($userID) || empty($foodIDs)) {
     echo json_encode(array('error' => 'Missing parameters'));
@@ -17,7 +19,7 @@ if (empty($userID) || empty($foodIDs)) {
 }
 
 // Prepare the query to delete multiple rows
-$query = "DELETE FROM assignedfood WHERE userID = ? AND foodID = ?";
+$query = "DELETE FROM assignedfood WHERE userID = ? AND foodID = ? AND dateAssigned = ?";
 $stmt = $conn->prepare($query);
 
 foreach ($foodIDs as $foodID) {

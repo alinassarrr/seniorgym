@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
+import 'package:intl/intl.dart';  // Import this for DateFormat
 
 const String _baseURL = 'http://10.0.2.2:8080';
 final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
@@ -187,6 +188,7 @@ class _BreakfastSuggestionsPageState extends State<BreakfastSuggestionsPage> {
 
   Future<void> deleteAssignedFoods(String userID, List<String> foodIDs) async {
     try {
+      String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
       final response = await http.post(
         Uri.parse('$_baseURL/php/deleteFood.php'),
         headers: <String, String>{
@@ -194,7 +196,8 @@ class _BreakfastSuggestionsPageState extends State<BreakfastSuggestionsPage> {
         },
         body: convert.jsonEncode(<String, dynamic>{
           'id': userID,
-          'foodIDs': foodIDs
+          'foodIDs': foodIDs,
+          'dateAssigned': currentDate,
         }),
       ).timeout(const Duration(seconds: 5));
 
