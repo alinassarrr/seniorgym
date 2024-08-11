@@ -1,7 +1,6 @@
 <?php
 header('Content-Type: application/json');
 
-// Include your database connection file
 include('conn.php');
 
 // Get userID, dateAssigned, and foodType from the POST request
