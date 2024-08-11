@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert' as convert;
 import 'package:http/http.dart' as http;
 import 'package:encrypted_shared_preferences/encrypted_shared_preferences.dart';
-import 'package:intl/intl.dart';  // Import this for DateFormat
+import 'package:intl/intl.dart';
 
 const String _baseURL = 'http://10.0.2.2:8080';
 final EncryptedSharedPreferences _encryptedData = EncryptedSharedPreferences();
@@ -202,7 +202,7 @@ class _BreakfastSuggestionsPageState extends State<BreakfastSuggestionsPage> {
       ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
-        print('Foods deleted: ${response.body}');
+        print('Foods deleted: ${response.body} ${currentDate}');
       } else {
         print('Failed to delete foods: ${response.statusCode}');
       }

@@ -16,7 +16,7 @@ if (empty($userID) || empty($foodIDs)) {
     exit();
 }
 
-$query = "DELETE FROM assignedfood WHERE userID = ? AND foodID = ?";
+$query = "DELETE FROM assignedfood WHERE userID = ? AND foodID = ? AND DATE(dateAssigned) = CURRENT_DATE";
 $stmt = $conn->prepare($query);
 
 foreach ($foodIDs as $foodID) {

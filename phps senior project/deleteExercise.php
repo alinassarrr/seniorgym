@@ -17,7 +17,7 @@ if (empty($userID) || empty($exerciseID)) {
 }
 
 // Prepare and execute the delete query
-$query = "DELETE FROM assignedexercise WHERE exerciseID = ? AND userID = ?";
+$query = "DELETE FROM assignedexercise WHERE DATE(dateAssigned) = CURRENT_DATE AND  exerciseID = ? AND userID = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param('ss', $exerciseID, $userID);
 
