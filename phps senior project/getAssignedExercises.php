@@ -15,7 +15,7 @@ $assignedExercises = array();
 $sql = "SELECT e.exerciseType
         FROM assignedexercise ae
         JOIN exercises e ON ae.exerciseID = e.exerciseID
-        WHERE ae.userID = ?";
+        WHERE ae.userID = ? AND dateAssigned = CURRENT_DATE";
 
 // Prepare and execute the SQL statement
 $stmt = $conn->prepare($sql);

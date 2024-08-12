@@ -75,21 +75,18 @@ class _DinnerSuggestionsPageState extends State<DinnerSuggestionsPage> {
           setState(() {
             isLoading = true;
           });
-
           // Delete unchecked dinner items
           for (int i = 0; i < dinnerOptions.length; i++) {
             if (!selectedOptions[i]) {
               await deleteAssignedFoods(widget.ID, [foodIDs[i]]);
             }
           }
-
           // Add checked dinner items
           for (int i = 0; i < selectedOptions.length; i++) {
             if (selectedOptions[i]) {
               await addFood(widget.ID, foodIDs[i]);
             }
           }
-
           setState(() {
             isLoading = false;
           });

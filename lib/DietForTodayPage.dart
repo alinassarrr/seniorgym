@@ -47,7 +47,7 @@ class _DietForTodayPageState extends State<DietForTodayPage> {
       appBar: AppBar(
         title: Center(
           child: Text(
-            'Your Diet Today',
+            'Your Diet Today       ',
             style: TextStyle(color: Colors.white),
           ),
         ),

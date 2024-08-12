@@ -88,7 +88,7 @@ class _AssignedDayExercisePageState extends State<AssignedDayExercisePage> {
           return ListTile(
             title: Text(
               exercise['exerciseType'],
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white,fontSize: 22),
             ),
             trailing: ElevatedButton(
               onPressed: exercise['isDone'] == 1

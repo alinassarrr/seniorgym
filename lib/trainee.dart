@@ -296,7 +296,7 @@ class _HomepageState extends State<Homepage> {
                   child: Center(
                     child: Text(
                       'Coaches',
-                      style: TextStyle(fontSize: 20, color: Colors.white),
+                      style: TextStyle(fontSize: 24, color: Colors.white,fontWeight:FontWeight.bold),
                     ),
                   ),
                 ),

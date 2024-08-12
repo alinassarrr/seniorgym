@@ -23,6 +23,7 @@ class _CoachFrontendState extends State<CoachFrontend> {
   @override
   void initState() {
     super.initState();
+    refresh();
     getTrainee(refresh);
   }
 

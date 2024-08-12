@@ -15,7 +15,7 @@ if (empty($userID)) {
     exit();
 }
 
-$query = "SELECT foodID FROM assignedfood WHERE userID = ?";
+$query = "SELECT foodID FROM assignedfood WHERE userID = ? AND dateAssigned = CURRENT_DATE";
 $stmt = $conn->prepare($query);
 $stmt->bind_param('s', $userID);
 

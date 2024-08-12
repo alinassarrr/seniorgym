@@ -28,14 +28,16 @@ class _SnackDietPageState extends State<SnackDietPage> {
       final response = await http.post(
         Uri.parse('http://10.0.2.2:8080/php/getSnacksAssigned.php'),
         headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8'
+          'Content-Type': 'application/json; charset=UTF-8',
         },
         body: convert.jsonEncode(<String, String>{
-          'userID': widget.userID,
+          'id': widget.userID,
           'dateAssigned': widget.dateAssigned,
-          'foodType': widget.foodType, // Adjusted to send foodType
         }),
       );
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final jsonResponse = convert.jsonDecode(response.body);
@@ -47,6 +49,7 @@ class _SnackDietPageState extends State<SnackDietPage> {
                 .toList();
             isLoading = false;
           });
+          print('Foods loaded: $foods');
         } else {
           setState(() {
             foods = [];
@@ -67,6 +70,7 @@ class _SnackDietPageState extends State<SnackDietPage> {
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -105,7 +109,7 @@ class _SnackDietPageState extends State<SnackDietPage> {
             ),
             title: Text(
               food['foodName'],
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white,fontSize: 22),
             ),
           );
         },

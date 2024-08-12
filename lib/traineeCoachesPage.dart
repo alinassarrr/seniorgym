@@ -21,7 +21,7 @@ class _CoachesPageState extends State<CoachesPage> {
   void initState() {
     super.initState();
     getCoach();
-    getAssignedCoach(); // Fetch the assigned coach on initialization
+    getAssignedCoach();
   }
 
   void getCoach() async {
@@ -39,7 +39,7 @@ class _CoachesPageState extends State<CoachesPage> {
           coaches.clear();
           for (var row in jsonResponse) {
             coaches.add({
-              'id': row['userID'], // Ensure this matches your server's response
+              'id': row['userID'],
               'name': "${row['Fname']} ${row['Lname']}",
             });
           }
@@ -89,83 +89,6 @@ class _CoachesPageState extends State<CoachesPage> {
     }
   }
 
-  void showSelectedCoach() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Selected Coach'),
-          content: Text('Do you want to change to $assignedCoachName?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop(); // Close the alert dialog
-                Navigator.of(context).pop(); // Navigate back to the previous screen
-                await assignCoach(); // Assign or update the coach
-              },
-              child: Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the alert dialog without action
-              },
-              child: Text('No'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-
-  Future<void> assignCoach() async {
-    try {
-      final traineeID = await _encryptedData.getString('traineeID'); // Get the trainee ID from encrypted shared preferences
-      final now = DateTime.now().toIso8601String(); // Current timestamp for date
-
-      // Check if a coach is already assigned
-      final checkResponse = await http.post(
-        Uri.parse('$_baseURL/php/check_coach.php'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: convert.jsonEncode(<String, String>{
-          'userID': traineeID,
-        }),
-      );
-
-      if (checkResponse.statusCode == 200) {
-        final checkJsonResponse = convert.jsonDecode(checkResponse.body);
-        final existingCoachID = checkJsonResponse['coachID'];
-
-        // Decide whether to update or insert based on existing assignment
-        final updateResponse = await http.post(
-          Uri.parse('$_baseURL/php/updateCoach.php'),
-          headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
-          },
-          body: convert.jsonEncode(<String, String>{
-            'userID': traineeID,
-            'coachID': selectedCoachID,
-            'date': now,
-          }),
-        );
-
-        if (updateResponse.statusCode == 200) {
-          // Handle successful response
-          print('Coach updated successfully');
-        } else {
-          // Handle error response
-          print('Error: ${updateResponse.statusCode}');
-        }
-      } else {
-        print('Error checking coach assignment: ${checkResponse.statusCode}');
-      }
-    } catch (e) {
-      print('Exception: $e');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -199,10 +122,15 @@ class _CoachesPageState extends State<CoachesPage> {
                       children: [
                         Radio(
                           value: coaches[index]['id'],
-                          groupValue: selectedCoachID, // Provide a group value to handle radio button selection
+                          groupValue: selectedCoachID,
                           onChanged: (value) {
                             setState(() {
-                              selectedCoachID = value.toString(); // Update the selected coach ID when radio button is changed
+                              selectedCoachID = value.toString();
+                              assignedCoachName = coaches.firstWhere(
+                                    (coach) => coach['id'] == selectedCoachID,
+                                orElse: () => {'name': 'Unknown'},
+                              )['name'] ?? 'Unknown';
+                              print('Selected Coach ID: $selectedCoachID');
                             });
                           },
                         ),
@@ -234,6 +162,75 @@ class _CoachesPageState extends State<CoachesPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> assignCoach() async {
+    try {
+      final traineeID = await _encryptedData.getString('traineeID');
+      final now = DateTime.now().toIso8601String(); // Current timestamp for date
+
+      print('Trainee ID: $traineeID');
+      print('Coach ID: $selectedCoachID');
+      print('Timestamp: $now');
+
+      final response = await http.post(
+        Uri.parse('$_baseURL/php/updateCoach.php'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: convert.jsonEncode(<String, String>{
+          'userID': traineeID,
+          'coachID': selectedCoachID,
+          'date': now,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = convert.jsonDecode(response.body);
+        if (jsonResponse['success'] == true) {
+          print('Coach assignment successfully updated or inserted.');
+        } else {
+          print('Error: ${jsonResponse['error']}');
+        }
+      } else {
+        print('Error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Exception: $e');
+    }
+  }
+
+  void showSelectedCoach() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Selected Coach'),
+          content: Text('Do you want to change to $assignedCoachName?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+                if (selectedCoachID.isNotEmpty) {
+                  print('Assigning Coach ID: $selectedCoachID');
+                  await assignCoach(); //update or insert new coach
+                } else {
+                  print('No coach selected.');
+                }
+              },
+              child: Text('Yes'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the alert dialog without action
+              },
+              child: Text('No'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

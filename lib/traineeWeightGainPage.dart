@@ -22,10 +22,10 @@ class WeightGainPage extends StatelessWidget {
             children: [
               GestureDetector(
                 onTap: () {
-                  print('Breackfast');
+                  print('Breakfast');
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => MealPage(mealType: 'Breakfast')),
+                    MaterialPageRoute(builder: (context) => MealPage(mealType: 'Breakfast', foodType: 'weightgain')),
                   );
                 },
                 child: Container(
@@ -52,7 +52,7 @@ class WeightGainPage extends StatelessWidget {
                   print('Lunch');
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => MealPage(mealType: 'Lunch')),
+                    MaterialPageRoute(builder: (context) => MealPage(mealType: 'Lunch', foodType: 'weightgain')),
                   );
                 },
                 child: Container(
@@ -79,7 +79,7 @@ class WeightGainPage extends StatelessWidget {
                   print('Dinner');
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => MealPage(mealType: 'Dinner')),
+                    MaterialPageRoute(builder: (context) => MealPage(mealType: 'Dinner', foodType: 'weightgain')),
                   );
                 },
                 child: Container(

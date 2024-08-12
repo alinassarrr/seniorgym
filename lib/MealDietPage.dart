@@ -106,7 +106,7 @@ class _MealDietPageState extends State<MealDietPage> {
             ),
             title: Text(
               food['foodName'],
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white,fontSize: 22),
             ),
           );
         },

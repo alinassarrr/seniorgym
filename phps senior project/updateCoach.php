@@ -17,7 +17,7 @@ if (empty($userID) || empty($coachID) || empty($date)) {
     exit();
 }
 
-// Update the existing row for the given userID
+// First, attempt to update the existing record for the given userID
 $query = "UPDATE registeredcoach SET coachID = ?, date = ? WHERE userID = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param('sss', $coachID, $date, $userID);
@@ -27,8 +27,17 @@ if ($stmt->execute()) {
         // Successfully updated an existing row
         echo json_encode(array('success' => true));
     } else {
-        // No rows updated (e.g., userID not found)
-        echo json_encode(array('error' => 'No rows updated'));
+        // No rows updated, so try inserting a new record
+        $insertQuery = "INSERT INTO registeredcoach (userID, coachID, date) VALUES (?, ?, ?)";
+        $insertStmt = $conn->prepare($insertQuery);
+        $insertStmt->bind_param('sss', $userID, $coachID, $date);
+
+        if ($insertStmt->execute()) {
+            echo json_encode(array('success' => true, 'action' => 'inserted'));
+        } else {
+            echo json_encode(array('error' => 'Failed to insert new coach'));
+        }
+        $insertStmt->close();
     }
 } else {
     // SQL execution error

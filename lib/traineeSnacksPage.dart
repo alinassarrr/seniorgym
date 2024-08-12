@@ -7,7 +7,7 @@ class SnacksPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Snacks',
+          'Snacks       ',
           style: TextStyle(color: Colors.white), // Set the text color to white
         ),
         centerTitle: true, // Center align the title
@@ -24,7 +24,7 @@ class SnacksPage extends StatelessWidget {
                 print('Sweet');
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MealPage(mealType: 'Sweet')),
+                  MaterialPageRoute(builder: (context) => MealPage(foodType:'Snacks',mealType: 'Sweet')),
                 );
               },
               child: Container(
@@ -52,7 +52,7 @@ class SnacksPage extends StatelessWidget {
                 print('Sour');
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MealPage(mealType: 'Sour')),
+                  MaterialPageRoute(builder: (context) => MealPage(foodType:'Snacks',mealType: 'Sour')),
                 );
               },
               child: Container(
